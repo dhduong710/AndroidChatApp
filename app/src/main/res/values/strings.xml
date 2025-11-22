@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">chatapp</string>
+    <string name="app_name">Hust Chat</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
