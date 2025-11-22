@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file defines the application's navigation flow.
+    The Start Destination is LoginFragment (the first screen that appears).
+-->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- Screen 1: Login -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.chatapp.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <!-- Action: Navigate from Login to Home -->
+        <!--
+            app:popUpTo: Clears the navigation back stack up to the loginFragment.
+            app:popUpToInclusive: When set to true, loginFragment is also removed.
+            This prevents users from navigating back to the login screen after logging in.
+        -->
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Screen 2: Home (Message List) -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.chatapp.HomeFragment"
+        android:label="Messages"
+        tools:layout="@layout/fragment_home">
+
+        <!-- Action: Navigate from Home to Chat -->
+        <action
+            android:id="@+id/action_homeFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+    </fragment>
+
+    <!-- Screen 3: Conversation -->
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.chatapp.ChatFragment"
+        android:label="Conversation"
+        tools:layout="@layout/fragment_chat">
+
+        <argument
+            android:name="friendId"
+            app:argType="string"
+            android:defaultValue="" />
+
+        <argument
+            android:name="friendName"
+            app:argType="string"
+            android:defaultValue="User" />
+    </fragment>
+
+</navigation>

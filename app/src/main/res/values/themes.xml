@@ -1,9 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Chatapp" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.ChatApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- The main brand color, used for the Toolbar background. -->
+        <item name="colorPrimary">#D90429</item>
+        <!-- A darker variant of the primary color, often used for the status bar. -->
+        <item name="colorPrimaryVariant">#B71C1C</item>
+        <!-- The color for text and icons that appear on top of the primary color (e.g., Toolbar title). -->
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- The color of the status bar at the very top of the screen. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
     </style>
 
-    <style name="Theme.Chatapp" parent="Base.Theme.Chatapp" />
+    <style name="Theme.ChatApp" parent="Base.Theme.ChatApp" />
 </resources>

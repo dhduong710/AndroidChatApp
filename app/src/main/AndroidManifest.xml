@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    The manifest file describes essential information about the application
+    to the Android build tools, the Android operating system, and Google Play.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Request permission to access the internet. This is required to connect to services like Firebase. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- The <application> element declares the application-level components. -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,13 +18,29 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Chatapp">
+        android:theme="@style/Theme.ChatApp"
+        tools:targetApi="31">
+
+        <!--
+            Declares MainActivity as the main entry point of the app.
+            android:exported="true" allows this activity to be launched by other apps (like the system launcher).
+        -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <!--
+                "adjustResize" ensures that when the on-screen keyboard appears,
+                the activity's main window is resized to make room for it.
+                This is crucial for chat screens so the input field moves above the keyboard.
+            -->
+
+            <!--
+                The <intent-filter> specifies that this activity is the main entry point
+                and should appear in the system's app launcher.
+            -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
