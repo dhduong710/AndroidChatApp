@@ -32,63 +32,42 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // View Initialization
-        // Find and assign views from the layout.
-        // For a more modern and safer approach, use ViewBinding.
         val etEmail = view.findViewById<EditText>(R.id.etEmail)
         val etPassword = view.findViewById<EditText>(R.id.etPassword)
         val btnLogin = view.findViewById<Button>(R.id.btnLogin)
         val tvRegister = view.findViewById<TextView>(R.id.tvRegister)
 
         // Business Logic
-
-        // Check if a user is already signed in. If so, navigate directly to the Home screen.
         viewModel.checkCurrentUser()
 
         // Set up the login button click listener.
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString()
             val pass = etPassword.text.toString()
-            // Delegate the login logic to the ViewModel.
             viewModel.login(email, pass)
         }
 
-        // Set up the register text click listener for a quick registration.
+        // Set up the "Register now" text click listener to navigate to the RegisterFragment.
         tvRegister.setOnClickListener {
-            val email = etEmail.text.toString()
-            val pass = etPassword.text.toString()
-            // For simplicity, use the current input fields for registration.
-            if (email.isNotEmpty() && pass.isNotEmpty()) {
-                Toast.makeText(context, "Registering...", Toast.LENGTH_SHORT).show()
-                viewModel.register(email, pass)
-            } else {
-                Toast.makeText(context, "Enter Email & Password to Register", Toast.LENGTH_SHORT).show()
-            }
+            // Use the NavController to perform the navigation action defined in nav_graph.xml.
+            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
 
         // LiveData Observation
-        // Observe changes in the data provided by the ViewModel.
-
-        // Observe the login result.
         viewModel.loginResult.observe(viewLifecycleOwner) { isSuccess ->
             if (isSuccess) {
-                // On successful login, navigate to the HomeFragment.
                 findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
             }
         }
 
-        // Observe for any error messages.
         viewModel.errorMessage.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {
-                // Display errors to the user in a Toast message.
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Observe the loading state to provide user feedback.
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            // Disable the login button to prevent multiple clicks while an operation is in progress.
             btnLogin.isEnabled = !isLoading
-            // Change the button text to indicate the loading state.
             btnLogin.text = if (isLoading) "Loading..." else getString(R.string.login_button)
         }
     }

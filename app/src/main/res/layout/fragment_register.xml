@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvRegTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#D90429"
+        app:layout_constraintBottom_toTopOf="@+id/etRegUsername"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.3" />
+
+    <EditText
+        android:id="@+id/etRegUsername"
+        android:layout_height="wrap_content"
+        android:hint="Username"
+        android:inputType="textVisiblePassword"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/etRegEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvRegTitle"
+        android:layout_width="0dp" />
+        <!--
+             android:layout_width="0dp"
+             In ConstraintLayout, a width of "0dp" means "match constraints".
+             The view's width will expand to fill the available space
+             between its horizontal constraints (in this case, from the start of the parent
+             to the end of the parent).
+            -->
+
+    <EditText
+        android:id="@+id/etRegEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/email_hint"
+        android:inputType="textVisiblePassword"
+        android:minHeight="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etRegUsername"
+        android:layout_marginTop="16dp" />
+        <!--
+         android:layout_marginTop="16dp"
+         This attribute adds a fixed space of 16 density-independent pixels (dp)
+         to the top of this view, pushing it down from the view it is constrained to
+         (in this case, the 'etRegUsername' EditText above it).
+        -->
+
+    <EditText
+        android:id="@+id/etRegPassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/password_hint"
+        android:inputType="textPassword"
+        android:minHeight="48dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etRegEmail" />
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etRegPassword"
+        android:backgroundTint="#D90429" />
+        <!--
+         android:backgroundTint="#D90429"
+         This attribute sets the background color tint for this button. It's a modern way
+         to color Material Design components without replacing their entire background drawable.
+        -->
+
+    <TextView
+        android:id="@+id/tvBackToLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Already have an account? Login"
+        android:textColor="#D90429"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRegister" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

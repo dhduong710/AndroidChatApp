@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    This file defines the application's navigation flow.
-    The Start Destination is LoginFragment (the first screen that appears).
+  This is the navigation graph for the application, which defines all possible navigation paths
+  between the different screens (Fragments).
+  The starting screen of the app is defined by app:startDestination.
 -->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,55 +10,73 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
 
-    <!-- Screen 1: Login -->
+    <!-- Screen 1: Login Fragment -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.chatapp.LoginFragment"
-        android:label="Login - Register"
+        android:label="@string/nav_login"
         tools:layout="@layout/fragment_login">
 
-        <!-- Action: Navigate from Login to Home -->
-        <!--
-            app:popUpTo: Clears the navigation back stack up to the loginFragment.
-            app:popUpToInclusive: When set to true, loginFragment is also removed.
-            This prevents users from navigating back to the login screen after logging in.
-        -->
+        <!-- Action to navigate to the Home screen after a successful login. -->
+        <!-- popUpTo and popUpToInclusive are used to clear the back stack, so the user cannot go back to the login screen. -->
         <action
             android:id="@+id/action_loginFragment_to_homeFragment"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+
+        <!-- Action to navigate to the Register screen. -->
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
     </fragment>
 
-    <!-- Screen 2: Home (Message List) -->
+    <!-- Screen 2: Registration Fragment -->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.chatapp.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+
+        <!-- After successful registration, navigate directly to the Home screen. -->
+        <!-- This also clears the login screen from the back stack, preventing the user from going back to it. -->
+        <action
+            android:id="@+id/action_registerFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Screen 3: Home Fragment (Main user list screen) -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.chatapp.HomeFragment"
-        android:label="Messages"
+        android:label="@string/nav_home"
         tools:layout="@layout/fragment_home">
 
-        <!-- Action: Navigate from Home to Chat -->
+        <!-- Action to navigate from the user list to a specific chat screen. -->
         <action
             android:id="@+id/action_homeFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
     </fragment>
 
-    <!-- Screen 3: Conversation -->
+    <!-- Screen 4: Chat Fragment (Individual conversation screen) -->
     <fragment
         android:id="@+id/chatFragment"
         android:name="com.example.chatapp.ChatFragment"
-        android:label="Conversation"
+        android:label="@string/nav_chat"
         tools:layout="@layout/fragment_chat">
 
+        <!-- Defines an argument to pass the ID of the friend/user to chat with. -->
         <argument
             android:name="friendId"
             app:argType="string"
             android:defaultValue="" />
 
+        <!-- Defines an argument to pass the name of the friend, used for the toolbar title. -->
         <argument
             android:name="friendName"
             app:argType="string"
             android:defaultValue="User" />
     </fragment>
-
 </navigation>
