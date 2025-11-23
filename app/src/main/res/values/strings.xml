@@ -3,4 +3,9 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="login_button">Login</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password (must at least 6 characters)</string>
+    <string name="nav_login">Login</string>
+    <string name="nav_home">Message</string>
+    <string name="nav_chat">Chat</string>
 </resources>
