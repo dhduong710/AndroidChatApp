@@ -13,7 +13,7 @@
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.chatapp.LoginFragment"
-        android:label="Login"
+        android:label="Login - Register"
         tools:layout="@layout/fragment_login">
 
         <!-- Action: Navigate from Login to Home -->
