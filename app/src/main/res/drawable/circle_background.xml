@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is a Shape Drawable resource file. It defines a custom geometric shape
+  that can be used as a background for Views like TextViews, ImageViews, or layouts.
+  Using shapes like this is more memory-efficient than using raster images (like .png or .jpg)
+  for simple backgrounds.
+-->
+
+<!--
+      android:shape="oval": This is the most important attribute. It specifies that the
+      shape to be drawn is an oval. Since an oval in a square container becomes a perfect
+      circle, this is commonly used to create circular backgrounds.
+    -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:shape="oval">
+
+    <!--
+      The <solid> tag is used to define the fill color of the shape.
+    -->
+<solid
+android:color="#CCCCCC" />
+
+
+    </shape>

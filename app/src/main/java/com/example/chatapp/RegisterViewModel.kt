@@ -1,5 +1,6 @@
 package com.example.chatapp
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,24 +11,23 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class RegisterViewModel : ViewModel() {
 
-    // Get an instance of FirebaseAuth to interact with Firebase Authentication services.
+    // Get instances of Firebase services.
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    // Initialize an instance of Cloud Firestore to interact with the database.
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     // --- LiveData for UI State ---
 
     // Private MutableLiveData that holds the result of the registration operation.
-    // True for success.
+    // This will be observed by the Fragment to know when to navigate away.
     private val _registerResult = MutableLiveData<Boolean>()
-    // Public, read-only LiveData that the Fragment can observe.
+    // Public, read-only LiveData exposed to the Fragment.
     val registerResult: LiveData<Boolean> get() = _registerResult
 
-    // Holds any error message to be displayed to the user.
+    // Private MutableLiveData to hold any error message to be displayed.
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
-    // Indicates whether a long-running operation is in progress.
+    // Private MutableLiveData to control the visibility of a loading indicator (e.g., ProgressBar).
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
@@ -47,46 +47,48 @@ class RegisterViewModel : ViewModel() {
         // Set the loading state to true to show a progress indicator in the UI.
         _isLoading.value = true
 
-        // 1. Create the user account with Firebase Authentication.
+        // 1. Create the user account with Firebase Authentication using email and password.
         auth.createUserWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Get the newly created user and their unique ID (UID).
+                    // If authentication is successful, get the newly created user and their UID.
                     val firebaseUser = auth.currentUser
                     val uid = firebaseUser?.uid ?: ""
 
-                    // 2. Update the user's profile display name in Firebase Auth.
+                    // 2. Update the user's profile in Firebase Authentication to set their display name.
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(username)
                         .build()
-
                     firebaseUser?.updateProfile(profileUpdates)
 
                     // 3. SAVE THE USER'S INFORMATION TO THE FIRESTORE DATABASE.
-                    // This is crucial for storing additional user data and for other users to find them.
+                    // This is crucial for storing additional user data (like email) and for other users to find them.
                     val user = User(uid, username, email)
 
                     // Save the user object to the "users" collection.
-                    // The document ID is set to the user's UID for easy lookup.
+                    // The document ID is set to the user's UID for easy and direct lookup later.
                     firestore.collection("users").document(uid).set(user)
                         .addOnSuccessListener {
-                            // If saving to Firestore is successful, the process is complete.
-                            _isLoading.value = false
-                            _registerResult.value = true
+                            // If saving to Firestore is successful, the entire process is complete.
+                            _isLoading.value = false // Hide the loading indicator on success.
+                            _registerResult.value = true // Signal to the UI that registration succeeded.
                         }
                         .addOnFailureListener { e ->
-                            // Handle the rare case where saving to Firestore fails.
-                            _isLoading.value = false
-                            _errorMessage.value = "Save to DB failed: ${e.message}"
-                            // Even though saving to the database failed, authentication was successful.
-                            // In a real-world scenario, you might need rollback logic, but for now,
-                            // we'll consider the registration successful to allow the user to log in.
-                            _registerResult.value = true
+                            // IMPORTANT: Handle the case where saving to Firestore fails.
+                            _isLoading.value = false // Hide the loading indicator on failure.
+                            Log.e("RegisterVM", "Firestore Error: ${e.message}")
+                            _errorMessage.value = "Failed to save user data: ${e.message}"
+
+                            // OPTIONAL: If saving to the database fails but authentication succeeded,
+                            // you might want to either let the user into the app anyway or delete the
+                            // authenticated user to allow them to try registering again.
+                            // For now, we show an error to help debug the API issue.
                         }
 
                 } else {
-                    // If account creation fails, set loading to false and post the error message.
-                    _isLoading.value = false
+                    // If Firebase Authentication fails (e.g., duplicate email, weak password).
+                    _isLoading.value = false // Hide the loading indicator on auth failure.
+                    // Post the error message from the exception to be shown in the UI.
                     _errorMessage.value = task.exception?.message ?: "Registration failed"
                 }
             }
