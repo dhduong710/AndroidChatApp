@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is a Color State List resource file. It defines different colors to be used
+  based on the state of a UI component, such as a menu item in a BottomNavigationView.
+  The system evaluates each <item> tag sequentially and uses the first one that matches
+  the component's current state.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      FIRST ITEM: Defines the color for the 'checked' state.
+
+      - android:state_checked="true": This is the condition. This item will only be
+        applied if the UI component (like a menu item) is currently in its "checked"
+        or "selected" state.
+
+      - android:color="#D90429": This is the color to be used when the condition is met.
+        In this case, the selected navigation item's icon and text will turn red.
+    -->
+    <item android:color="#D90429" android:state_checked="true" />
+
+    <!--
+      SECOND ITEM: The default case.
+
+      - This item has no state condition specified, so it acts as the default fallback.
+      - It will be applied if none of the previous items' conditions are met.
+      - In this case, it defines the color for all items that are NOT checked (i.e., they are in their normal, unselected state).
+      - The color used will be a medium gray (#757575).
+    -->
+    <item android:color="#757575" />
+
+</selector>
