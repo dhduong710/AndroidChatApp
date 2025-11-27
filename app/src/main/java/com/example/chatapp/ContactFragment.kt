@@ -26,6 +26,7 @@ class ContactFragment : Fragment() {
 
     // Using view binding to safely access views.
     private var _binding: FragmentContactBinding? = null
+
     // This non-nullable property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
@@ -76,13 +77,18 @@ class ContactFragment : Fragment() {
             }
         }
 
-        // --- Handle Adapter Item Clicks ---
+        // Observe the status of the friend request being sent.
+        viewModel.sendRequestStatus.observe(viewLifecycleOwner) { isSent ->
+            if (isSent) {
+                Toast.makeText(context, "Friend request sent!", Toast.LENGTH_SHORT).show()
+                // Optional: You could hide the user from the list or change the icon to "Sent" here.
+            }
+        }
 
-        // Set the lambda function to be executed when the "Add Friend" button inside a RecyclerView item is clicked.
-        userAdapter.onAddFriendClick = { user ->
-            // Show a confirmation Toast message.
-            Toast.makeText(context, "Friend request sent to ${user.username}", Toast.LENGTH_SHORT).show()
-            // TODO: Implement the logic to send a friend request to Firestore.
+        // Handle the click event for the "Add Friend" button from the adapter.
+        userAdapter.onAddFriendClick = { targetUser ->
+            // Call the ViewModel to send the friend request.
+            viewModel.sendFriendRequest(targetUser)
         }
     }
 
