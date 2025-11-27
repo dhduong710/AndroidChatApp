@@ -1,14 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<!--
+  This is the layout file for the Contact screen.
+  It allows the user to search for other users by email and displays the results in a list.
+  The root element is a LinearLayout, which arranges its children vertically.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Contact">
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!--
+      This TextView acts as the title for the screen.
+    -->
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Find Friends"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#D90429"
+        android:layout_marginBottom="16dp"/>
+
+    <!--
+      A horizontal LinearLayout to group the search input field and the search button side-by-side.
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!--
+          The input field for the user to type the email they want to search for.
+          - layout_weight="1": This makes the EditText expand to fill all available horizontal space
+            left by the search button.
+        -->
+        <EditText
+            android:id="@+id/etSearchEmail"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:hint="Enter email to search..."
+            android:inputType="textEmailAddress"
+            android:background="@android:drawable/editbox_background"/>
+
+        <!--
+          The button that triggers the search action.
+        -->
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Search"
+            android:backgroundTint="#D90429"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!--
+      RecyclerView to display the list of search results.
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUserList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_marginTop="16dp"/>
 
-</FrameLayout>
+</LinearLayout>
