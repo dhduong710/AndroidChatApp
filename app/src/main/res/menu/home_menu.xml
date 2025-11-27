@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!--
+      app:showAsAction: This attribute determines how this menu item should be displayed
+      on the app bar (Toolbar/ActionBar).
+
+      - "ifRoom": This value tells the system to display the item as an icon on the app bar
+        ONLY IF there is enough space available. If there is not enough room, the item
+        will be placed in the overflow menu (the three-dot menu).
+
+      Other common values include:
+      - "always": Always places the item on the app bar. (Use with caution, can crowd the UI).
+      - "never": Never places the item on the app bar; it will always be in the overflow menu.
+      - "withText": Shows the item's title text next to the icon (if there's room).
+    -->
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout"
+        android:icon="@android:drawable/ic_lock_power_off"
+
+        app:showAsAction="ifRoom" />
+
+</menu>

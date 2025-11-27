@@ -1,23 +1,58 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><!--
+  This is the main layout for the Home screen, which acts as a container
+  for other fragments and includes the main navigation bar.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!--
+      FrameLayout: A simple container to hold child fragments.
+      This is where the ChatListFragment or ContactFragment will be displayed.
+      - Its constraints make it fill all available space ABOVE the BottomNavigationView.
+    -->
+    <FrameLayout
+        android:id="@+id/home_content_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--
+      BottomNavigationView: The main navigation component at the bottom of the screen.
+      It allows users to switch between the top-level destinations of the app.
+
+      - android:elevation: Adds a shadow below the bar, making it appear "elevated" above the content.
+      - app:itemIconTint: Sets the color tint for the navigation item ICONS.
+        It points to a Color State List (@color/nav_item_color_state) which defines
+        different colors for different states (e.g., checked vs. unchecked).
+      - app:itemTextColor: Sets the color for the navigation item TEXT labels.
+        This also uses the same Color State List to match the icon colors for each state.
+      - app:labelVisibilityMode: Controls when the text labels for items are shown.
+        "labeled" means the label is ALWAYS visible for all navigation items.
+        Other options include "auto", "selected", and "unlabeled".
+      - app:itemRippleColor: Defines the color of the ripple effect that appears when an item is tapped.
+        #33D90429 is a semi-transparent red, providing visual feedback on touch.
+      - app:menu: Links this BottomNavigationView to a menu resource file (@menu/bottom_nav_menu).
+        That file defines the actual items that will be displayed (e.g., "Chat" and "Contacts").
+    -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Welcome to Hust Chat!"
-        android:textSize="24sp"
-        android:textColor="#D90429" />
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        app:itemIconTint="@color/nav_item_color_state"
+        app:itemTextColor="@color/nav_item_color_state"
+        app:labelVisibilityMode="labeled"
+        app:itemRippleColor="#33D90429"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Logout"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="#D90429" />
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

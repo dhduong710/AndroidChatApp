@@ -3,15 +3,19 @@ package com.example.chatapp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.chatapp.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RegisterViewModel : ViewModel() {
 
     // Get an instance of FirebaseAuth to interact with Firebase Authentication services.
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    // Initialize an instance of Cloud Firestore to interact with the database.
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // LiveData for UI State
+    // --- LiveData for UI State ---
 
     // Private MutableLiveData that holds the result of the registration operation.
     // True for success.
@@ -19,11 +23,11 @@ class RegisterViewModel : ViewModel() {
     // Public, read-only LiveData that the Fragment can observe.
     val registerResult: LiveData<Boolean> get() = _registerResult
 
-    // Holds any error message to be displayed to the user. Nullable to allow clearing the error.
+    // Holds any error message to be displayed to the user.
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
-    // Indicates whether a long-running operation (like registration) is in progress.
+    // Indicates whether a long-running operation is in progress.
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
@@ -43,30 +47,43 @@ class RegisterViewModel : ViewModel() {
         // Set the loading state to true to show a progress indicator in the UI.
         _isLoading.value = true
 
-        // Create the user account with Firebase Authentication.
+        // 1. Create the user account with Firebase Authentication.
         auth.createUserWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // If account creation is successful, update the user's profile with the provided username.
-                    val user = auth.currentUser
+                    // Get the newly created user and their unique ID (UID).
+                    val firebaseUser = auth.currentUser
+                    val uid = firebaseUser?.uid ?: ""
+
+                    // 2. Update the user's profile display name in Firebase Auth.
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(username)
                         .build()
 
-                    user?.updateProfile(profileUpdates)
-                        ?.addOnCompleteListener { updateTask ->
-                            // The entire process is finished, so set loading state to false.
+                    firebaseUser?.updateProfile(profileUpdates)
+
+                    // 3. SAVE THE USER'S INFORMATION TO THE FIRESTORE DATABASE.
+                    // This is crucial for storing additional user data and for other users to find them.
+                    val user = User(uid, username, email)
+
+                    // Save the user object to the "users" collection.
+                    // The document ID is set to the user's UID for easy lookup.
+                    firestore.collection("users").document(uid).set(user)
+                        .addOnSuccessListener {
+                            // If saving to Firestore is successful, the process is complete.
                             _isLoading.value = false
-                            if (updateTask.isSuccessful) {
-                                // If the profile update is also successful, notify the UI of success.
-                                _registerResult.value = true
-                            } else {
-                                // This is a rare case where the account is created, but the profile name update fails.
-                                // We still consider it a successful registration but log an error.
-                                _errorMessage.value = "Account created but failed to set username"
-                                _registerResult.value = true
-                            }
+                            _registerResult.value = true
                         }
+                        .addOnFailureListener { e ->
+                            // Handle the rare case where saving to Firestore fails.
+                            _isLoading.value = false
+                            _errorMessage.value = "Save to DB failed: ${e.message}"
+                            // Even though saving to the database failed, authentication was successful.
+                            // In a real-world scenario, you might need rollback logic, but for now,
+                            // we'll consider the registration successful to allow the user to log in.
+                            _registerResult.value = true
+                        }
+
                 } else {
                     // If account creation fails, set loading to false and post the error message.
                     _isLoading.value = false
