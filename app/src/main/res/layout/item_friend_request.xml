@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  This is the layout file for a single item in the friend request list (RecyclerView).
+  It defines how each incoming friend request will be displayed to the user,
+  showing the sender's details and providing an "Accept" button.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
+
+    <!--
+      An icon on the left side of the item, providing a visual cue.
+      Here, a default system email icon is used as a placeholder.
+    -->
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/sym_action_email"
+        android:contentDescription="User Icon" />
+
+    <!--
+      A vertical LinearLayout to stack the sender's name and email.
+      - layout_weight="1": This is a crucial attribute that makes this layout expand
+        to fill all available horizontal space, pushing the "Accept" button to the far right.
+    -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp">
+
+        <!-- TextView to display the name of the user who sent the friend request. -->
+        <TextView
+            android:id="@+id/tvSenderName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="User Name" />
+
+        <!-- TextView to display the email of the user who sent the request. -->
+        <TextView
+            android:id="@+id/tvSenderEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="email@example.com" />
+    </LinearLayout>
+
+    <!--
+      The "Accept" button that allows the current user to accept the friend request.
+    -->
+    <Button
+        android:id="@+id/btnAccept"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="Accept"
+        android:textSize="12sp"
+        android:backgroundTint="#D90429" />
+</LinearLayout>
