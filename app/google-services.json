@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "321425282368",
+    "project_id": "hustchat-1df7d",
+    "storage_bucket": "hustchat-1df7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:321425282368:android:2b8dcb922fb342dfdfd6a5",
+        "android_client_info": {
+          "package_name": "com.example.hustchat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlH6uSuxM1l_vmGVPHvCwuE3_d1e8Dl9M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

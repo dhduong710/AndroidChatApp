@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Hustchat" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.HustChat" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/hust_red</item>
+        <item name="colorPrimaryVariant">@color/hust_red_dark</item>
+        <item name="android:statusBarColor">@color/hust_red</item>
     </style>
 
-    <style name="Theme.Hustchat" parent="Base.Theme.Hustchat" />
+    <style name="Theme.HustChat" parent="Base.Theme.HustChat" />
 </resources>
