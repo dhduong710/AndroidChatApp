@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="conversation"
+            type="com.example.hustchat.model.Conversation" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_person"
+            android:background="@color/gray_light"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:text="@{conversation.otherUser.username}"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toEndOf="@id/ivAvatar"
+            app:layout_constraintTop_toTopOf="@id/ivAvatar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"/>
+
+        <TextView
+            android:id="@+id/tvLastMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:text="@{conversation.lastMessage}"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/ivAvatar"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/ivAvatar"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

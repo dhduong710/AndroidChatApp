@@ -59,4 +59,13 @@
         android:id="@+id/createGroupFragment"
         android:name="com.example.hustchat.ui.CreateGroupFragment"
         android:label="Create Group" />
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.hustchat.ui.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/fragment_chat"/>
+
+    <action
+        android:id="@+id/action_messagesFragment_to_chatFragment"
+        app:destination="@id/chatFragment" />
 </navigation>

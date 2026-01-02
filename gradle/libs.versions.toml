@@ -39,7 +39,8 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 
 # Coroutines (Lesson 9, 11)
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 # Glide (Lesson 11)
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 

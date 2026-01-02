@@ -29,10 +29,20 @@ class UserAdapter(private val onAddClick: (User) -> Unit) :
             binding.user = user
             binding.executePendingBindings()
 
+            // Reset the button state (because RecyclerView reuses Views)
+            binding.btnAdd.isEnabled = true
+            binding.btnAdd.text = "Add Friend" // TRANSLATED
+            binding.btnAdd.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                android.graphics.Color.parseColor("#D71920")
+            )
+
             binding.btnAdd.setOnClickListener {
                 onAddClick(user)
+
+                // Provide immediate UI Feedback
                 binding.btnAdd.text = "Sent"
                 binding.btnAdd.isEnabled = false
+                binding.btnAdd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.GRAY)
             }
         }
     }
