@@ -219,4 +219,48 @@ class UserRepository {
             }
         awaitClose { listener.remove() }
     }
+
+    // Get the list of friends (from the friends collection)
+    suspend fun getFriends(): List<User> {
+        val currentUid = auth.currentUser?.uid ?: return emptyList()
+        val snapshot = db.collection("users").document(currentUid)
+            .collection("friends").get().await()
+        return snapshot.toObjects(User::class.java)
+    }
+
+    // Create Group
+    suspend fun createGroup(groupName: String, memberIds: List<String>) {
+        val currentUid = auth.currentUser?.uid ?: return
+        val timestamp = System.currentTimeMillis()
+
+        // Generate random IDs for the Group
+        val groupRef = db.collection("conversations").document()
+
+        // Participant list includes: Me + the friends I've selected
+        val allParticipants = memberIds.toMutableList()
+        allParticipants.add(currentUid)
+
+        val groupChat = hashMapOf(
+            "id" to groupRef.id,
+            "participantIds" to allParticipants,
+            "type" to "group", // Mark as Group
+            "groupName" to groupName,
+            "lastMessage" to "Group \"$groupName\" has been created.",
+            "timestamp" to timestamp
+        )
+
+        val batch = db.batch()
+        batch.set(groupRef, groupChat)
+
+        // Create system message
+        val msgRef = groupRef.collection("messages").document()
+        val sysMsg = hashMapOf(
+            "senderId" to "SYSTEM",
+            "content" to "Group \"$groupName\" has been created.",
+            "timestamp" to timestamp
+        )
+        batch.set(msgRef, sysMsg)
+
+        batch.commit().await()
+    }
 }
