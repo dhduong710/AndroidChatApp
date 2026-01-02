@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.hustchat.model.User
 import com.example.hustchat.repository.UserRepository
 import kotlinx.coroutines.launch
+import com.example.hustchat.model.FriendRequest
+
 
 class MainViewModel : ViewModel() {
     private val repository = UserRepository()
@@ -34,6 +36,29 @@ class MainViewModel : ViewModel() {
             try {
                 repository.sendFriendRequest(user.uid)
                 _toastMessage.value = "A request has been sent to ${user.username}"
+            } catch (e: Exception) {
+                _toastMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+
+    private val _friendRequests = MutableLiveData<List<FriendRequest>>()
+    val friendRequests: LiveData<List<FriendRequest>> = _friendRequests
+
+    fun loadFriendRequests() {
+        viewModelScope.launch {
+            val requests = repository.getFriendRequests()
+            _friendRequests.value = requests
+        }
+    }
+
+    fun acceptRequest(request: FriendRequest) {
+        viewModelScope.launch {
+            try {
+                repository.acceptFriendRequest(request)
+                // Reload the list after accepting
+                loadFriendRequests()
+                _toastMessage.value = "Have added ${request.senderUser?.username} as a friend"
             } catch (e: Exception) {
                 _toastMessage.value = "Error: ${e.message}"
             }
