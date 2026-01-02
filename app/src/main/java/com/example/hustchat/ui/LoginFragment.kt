@@ -57,7 +57,7 @@ class LoginFragment : Fragment() {
                     binding.progressBar.visibility = View.GONE
                     binding.btnLogin.isEnabled = true
                     Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
-                    // TODO: Navigate to Home Screen later
+                    findNavController().navigate(R.id.action_loginFragment_to_messagesFragment)
                 }
                 is AuthState.Error -> {
                     binding.progressBar.visibility = View.GONE
