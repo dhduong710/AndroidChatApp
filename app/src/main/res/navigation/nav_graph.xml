@@ -38,10 +38,10 @@
         android:label="Messages"
         tools:layout="@layout/fragment_messages" />
         <action
-            android:id="@+id/action_messages_to_addFriend"
+            android:id="@+id/action_messagesFragment_to_addFriend"
             app:destination="@id/addFriendFragment" />
         <action
-            android:id="@+id/action_messages_to_createGroup"
+            android:id="@+id/action_messagesFragment_to_createGroup"
             app:destination="@id/createGroupFragment" />
 
     <fragment

@@ -42,6 +42,7 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiff
     class SentViewHolder(private val binding: ItemMessageSentBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.message = message
+            binding.tvTime.text = com.example.hustchat.utils.TimeUtils.formatTime(message.timestamp)
             binding.executePendingBindings()
         }
     }
@@ -49,6 +50,7 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiff
     class ReceivedViewHolder(private val binding: ItemMessageReceivedBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.message = message
+            binding.tvTime.text = com.example.hustchat.utils.TimeUtils.formatTime(message.timestamp)
             binding.executePendingBindings()
         }
     }
