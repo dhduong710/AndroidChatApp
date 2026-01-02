@@ -8,6 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hustchat.databinding.ItemConversationBinding
 import com.example.hustchat.model.Conversation
 
+import com.example.hustchat.R
+
+
 class ConversationAdapter(
     private val onClick: (Conversation) -> Unit
 ) : ListAdapter<Conversation, ConversationAdapter.ConversationViewHolder>(ConversationDiffCallback()) {
@@ -27,6 +30,16 @@ class ConversationAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(conversation: Conversation) {
+            // Logic for displaying Name
+            if (conversation.type == "group") {
+                binding.tvName.text = conversation.groupName
+                binding.ivAvatar.setImageResource(R.drawable.ic_group)
+            } else {
+                binding.tvName.text = conversation.otherUser?.username ?: "Loading..."
+                binding.ivAvatar.setImageResource(R.drawable.ic_person)
+            }
+
+            binding.tvLastMessage.text = conversation.lastMessage
 
             binding.conversation = conversation
             binding.tvTimeConv.text = com.example.hustchat.utils.TimeUtils.getTimeDisplay(conversation.timestamp)
