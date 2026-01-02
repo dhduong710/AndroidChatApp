@@ -29,6 +29,7 @@ class ConversationAdapter(
         fun bind(conversation: Conversation) {
 
             binding.conversation = conversation
+            binding.tvTimeConv.text = com.example.hustchat.utils.TimeUtils.getTimeDisplay(conversation.timestamp)
             binding.executePendingBindings()
 
             binding.root.setOnClickListener {

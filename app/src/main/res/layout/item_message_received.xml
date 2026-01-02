@@ -33,6 +33,17 @@
             android:maxWidth="280dp"
             app:layout_constraintStart_toEndOf="@id/ivAvatar"
             app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="4dp"
+            android:text="12:00"
+            android:textSize="10sp"
+            android:textColor="#9E9E9E"
+            app:layout_constraintStart_toStartOf="@id/tvContent"
+            app:layout_constraintTop_toBottomOf="@id/tvContent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
