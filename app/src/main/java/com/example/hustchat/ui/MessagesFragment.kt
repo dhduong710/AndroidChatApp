@@ -116,38 +116,36 @@ class MessagesFragment : Fragment() {
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         viewModel.conversations.observe(viewLifecycleOwner) { conversations ->
-            // 1. Save the original list
+            // Store the original list
             fullConversationList = conversations
 
-            // 2. Display immediately (even if user names haven't finished loading)
-            // If a search is active, filter the list; otherwise, show the full list
-            val currentQuery = binding.etSearch.text.toString()
-            if (currentQuery.isNotEmpty()) {
-                filterList(currentQuery)
-            } else {
-                adapter.submitList(conversations)
-            }
+            // 1. Display the list immediately (Create a copy with toList() for DiffUtil to work)
+            adapter.submitList(conversations.toList())
 
-            // 3. Process user name loading for 1-on-1 (Single) chats
+            // 2. Load missing User names
             conversations.forEachIndexed { index, chat ->
                 if (chat.type != "group") {
-                    // Find the other person's ID (the ID that is not ours)
                     val otherId = chat.participantIds.find { it != currentUid }
 
                     if (otherId != null) {
+                        // Check Cache
                         if (userCache.containsKey(otherId)) {
-                            // If already in cache -> Assign immediately -> Refresh that item
-                            chat.otherUser = userCache[otherId]
-                            // Only refresh this item if the adapter is showing the full list
-                            if (currentQuery.isEmpty()) adapter.notifyItemChanged(index)
+                            // If it's in the cache but not in the chat object -> Assign it
+                            if (chat.otherUser == null) {
+                                chat.otherUser = userCache[otherId]
+                                adapter.notifyItemChanged(index)
+                            }
                         } else {
-                            // If not in cache -> Fetch from API
-                            viewModel.getUserInfo(otherId) { user ->
-                                if (user != null) {
-                                    userCache[otherId] = user
-                                    chat.otherUser = user
-                                    // Only refresh this item if the adapter is showing the full list
-                                    if (currentQuery.isEmpty()) adapter.notifyItemChanged(index)
+                            // Not in cache -> Call API
+                            // Only call if chat.otherUser is null to avoid repeated calls
+                            if (chat.otherUser == null) {
+                                viewModel.getUserInfo(otherId) { user ->
+                                    if (user != null) {
+                                        userCache[otherId] = user
+                                        chat.otherUser = user
+                                        // Update the specific item at its position
+                                        adapter.notifyItemChanged(index)
+                                    }
                                 }
                             }
                         }
