@@ -9,6 +9,11 @@ import com.example.hustchat.repository.UserRepository
 import kotlinx.coroutines.launch
 import com.example.hustchat.model.FriendRequest
 
+import androidx.lifecycle.asLiveData
+import com.example.hustchat.model.Conversation
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
 
 class MainViewModel : ViewModel() {
     private val repository = UserRepository()
@@ -35,7 +40,8 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.sendFriendRequest(user.uid)
-                _toastMessage.value = "A request has been sent to ${user.username}"
+                // TRANSLATED
+                _toastMessage.value = "Friend request sent to ${user.username}"
             } catch (e: Exception) {
                 _toastMessage.value = "Error: ${e.message}"
             }
@@ -58,10 +64,34 @@ class MainViewModel : ViewModel() {
                 repository.acceptFriendRequest(request)
                 // Reload the list after accepting
                 loadFriendRequests()
-                _toastMessage.value = "Have added ${request.senderUser?.username} as a friend"
+                _toastMessage.value = "You and ${request.senderUser?.username} are now friends"
             } catch (e: Exception) {
                 _toastMessage.value = "Error: ${e.message}"
             }
+        }
+    }
+
+    // Convert the Flow to LiveData for the UI to observe
+    val conversations = repository.getConversationsLive().asLiveData()
+
+    // Helper function to load the other user's info for a conversation
+    fun getUserInfo(uid: String, onResult: (User?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val doc = FirebaseFirestore.getInstance()
+                    .collection("users").document(uid).get().await()
+                onResult(doc.toObject(User::class.java))
+            } catch (e: Exception) { onResult(null) }
+        }
+    }
+
+    // Function to retrieve Realtime messages
+    fun getMessages(conversationId: String) = repository.getMessagesLive(conversationId).asLiveData()
+
+    // Message sending function
+    fun sendMessage(conversationId: String, content: String) {
+        viewModelScope.launch {
+            repository.sendMessage(conversationId, content)
         }
     }
 }

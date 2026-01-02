@@ -3,43 +3,51 @@ package com.example.hustchat.repository
 import com.example.hustchat.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 import com.example.hustchat.model.FriendRequest
+import com.example.hustchat.model.Conversation
+
+import kotlinx.coroutines.flow.callbackFlow
+
+import kotlinx.coroutines.channels.awaitClose
+
+import com.example.hustchat.model.Message
 
 
 class UserRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    // Search for a user by exact email or phone number
+    // Search User (Excluding users who are already friends)
     suspend fun searchUsers(query: String): List<User> {
-        val users = mutableListOf<User>()
         val currentUid = auth.currentUser?.uid ?: return emptyList()
+        val users = mutableListOf<User>()
 
         try {
-            // Search by Email
-            val emailQuery = db.collection("users")
-                .whereEqualTo("email", query)
-                .get().await()
+            // Get the current friends list first to filter them out
+            val friendsSnapshot = db.collection("users").document(currentUid)
+                .collection("friends").get().await()
+            val friendIds = friendsSnapshot.documents.map { it.id }.toSet()
 
-            // Search by Phone
-            val phoneQuery = db.collection("users")
-                .whereEqualTo("phoneNumber", query)
-                .get().await()
-
-            // Merge results (excluding the current user)
+            // Search logic
+            val emailQuery = db.collection("users").whereEqualTo("email", query).get().await()
+            val phoneQuery = db.collection("users").whereEqualTo("phoneNumber", query).get().await()
             val allDocs = emailQuery.documents + phoneQuery.documents
+
             for (doc in allDocs) {
                 val user = doc.toObject(User::class.java)
-                if (user != null && user.uid != currentUid) {
+                // Condition: Not me AND not already a friend
+                if (user != null && user.uid != currentUid && !friendIds.contains(user.uid)) {
                     users.add(user)
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return users.distinctBy { it.uid } // Remove duplicates if found in both queries
+
+        return users.distinctBy { it.uid }
     }
 
     // Send a friend request
@@ -87,33 +95,128 @@ class UserRepository {
         return requests
     }
 
-    // Accept a friend request
+    // Creates a unified chat room ID from 2 UIDs (so that when A chats with B or B chats with A, the same ID is generated)
+    private fun getConversationId(uid1: String, uid2: String): String {
+        return if (uid1 < uid2) "${uid1}_${uid2}" else "${uid2}_${uid1}"
+    }
+
+    // Accept friend request -> Create a conversation immediately
     suspend fun acceptFriendRequest(request: FriendRequest) {
         val currentUid = auth.currentUser?.uid ?: return
+        val partnerId = request.senderId
 
-        // Batch write: Perform multiple operations at once (like a transaction)
         val batch = db.batch()
+        val timestamp = System.currentTimeMillis()
 
         // 1. Delete the friend request
         val requestRef = db.collection("friend_requests").document(request.id)
         batch.delete(requestRef)
 
-        // 2. Add the new friend to MY "friends" sub-collection
+        // 2. Add to Friends (both ways)
         val myFriendRef = db.collection("users").document(currentUid)
-            .collection("friends").document(request.senderId)
-        batch.set(myFriendRef, request.senderUser!!)
+            .collection("friends").document(partnerId)
+        batch.set(myFriendRef, request.senderUser!!) // Save basic info
 
-        // 3. Add myself to the OTHER PERSON's "friends" sub-collection
-        // Need to get my own info first
+        // Need to fetch my own info to save on the other side
         val meDoc = db.collection("users").document(currentUid).get().await()
-        val me = meDoc.toObject(User::class.java)
+        val me = meDoc.toObject(User::class.java)!!
 
-        if (me != null) {
-            val otherFriendRef = db.collection("users").document(request.senderId)
-                .collection("friends").document(currentUid)
-            batch.set(otherFriendRef, me)
-        }
+        val otherFriendRef = db.collection("users").document(partnerId)
+            .collection("friends").document(currentUid)
+        batch.set(otherFriendRef, me)
+
+        // 3. CREATE CONVERSATION
+        val conversationId = getConversationId(currentUid, partnerId)
+        val conversationRef = db.collection("conversations").document(conversationId)
+
+        val newConversation = hashMapOf(
+            "id" to conversationId,
+            "participantIds" to listOf(currentUid, partnerId),
+            "lastMessage" to "You are now friends. Say hello!",
+            "timestamp" to timestamp
+        )
+        // Use set with merge=true to avoid overwriting if an old chat exists (in case of un-friending and re-friending)
+        batch.set(conversationRef, newConversation, SetOptions.merge())
+
+        // 4. Create the first system message in the "messages" sub-collection
+        val sysMsgRef = conversationRef.collection("messages").document()
+        val sysMsg = hashMapOf(
+            "senderId" to "SYSTEM",
+            "content" to "You are now friends. Say hello!",
+            "timestamp" to timestamp
+        )
+        batch.set(sysMsgRef, sysMsg)
 
         batch.commit().await()
+    }
+
+    // Get the list of Conversations in Realtime (using Kotlin Flow and Firestore)
+    fun getConversationsLive(): kotlinx.coroutines.flow.Flow<List<Conversation>> = kotlinx.coroutines.flow.callbackFlow {
+        val currentUid = auth.currentUser?.uid ?: return@callbackFlow
+
+        val listener = db.collection("conversations")
+            .whereArrayContains("participantIds", currentUid) // Query for chats where the current user is a participant
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error) // Close the flow with an error
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val conversations = mutableListOf<Conversation>()
+                    // Since Firestore doesn't support joins, have to manually load the other user's info.
+                    // However, to be fast, will return the list of conversations first,
+                    // and the ViewModel will be responsible for loading the user info later.
+                    for (doc in snapshot.documents) {
+                        val chat = doc.toObject(Conversation::class.java)
+                        if (chat != null) {
+                            conversations.add(chat)
+                        }
+                    }
+                    trySend(conversations) // Send the latest list to the flow
+                }
+            }
+        // When the flow is cancelled, remove the Firestore listener to prevent memory leaks
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun sendMessage(conversationId: String, content: String) {
+        val currentUid = auth.currentUser?.uid ?: return
+        val timestamp = System.currentTimeMillis()
+
+        val msgRef = db.collection("conversations").document(conversationId)
+            .collection("messages").document() // Generate ID automatically
+
+        val message = Message(msgRef.id, currentUid, content, timestamp)
+
+        val batch = db.batch()
+        // 1. Save the message to the sub-collection
+        batch.set(msgRef, message)
+
+        // 2. Update the last message in Conversation (to display externally)
+        val convRef = db.collection("conversations").document(conversationId)
+        batch.update(convRef, mapOf(
+            "lastMessage" to content,
+            "timestamp" to timestamp
+        ))
+
+        batch.commit().await()
+    }
+
+    // Listen to messages in real-time
+    fun getMessagesLive(conversationId: String): kotlinx.coroutines.flow.Flow<List<Message>> = kotlinx.coroutines.flow.callbackFlow {
+        val listener = db.collection("conversations").document(conversationId)
+            .collection("messages")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) { close(e); return@addSnapshotListener }
+
+                if (snapshot != null) {
+                    val msgs = snapshot.toObjects(Message::class.java)
+                    trySend(msgs)
+                }
+            }
+        awaitClose { listener.remove() }
     }
 }
