@@ -1,5 +1,6 @@
 package com.example.hustchat.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,53 +9,53 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.hustchat.adapter.MessageAdapter
+import com.example.hustchat.adapter.ChatAdapter
 import com.example.hustchat.databinding.FragmentChatBinding
-import com.example.hustchat.viewmodel.MainViewModel
-
-import android.graphics.Color
-import com.google.firebase.firestore.FirebaseFirestore
-import com.example.hustchat.utils.TimeUtils
+import com.example.hustchat.model.ChatItem
 import com.example.hustchat.model.User
-
+import com.example.hustchat.utils.TimeUtils
+import com.example.hustchat.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ChatFragment : Fragment() {
-    private lateinit var binding: FragmentChatBinding
+    private var _binding: FragmentChatBinding? = null
+    private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var adapter: MessageAdapter
+    private lateinit var adapter: ChatAdapter
 
     private var conversationId: String = ""
-    private var otherName: String = ""
+    private var chatName: String = ""
 
-    private var chatName: String = "" // Display name (Friend name or Group name)
-    private var isGroup: Boolean = false // The flag indicates whether this is a Group or a chat with a friend.
+    // Store the current list of chat items to reload when switching the Adapter (Group mode)
+    private var currentChatItems: List<ChatItem> = emptyList()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentChatBinding.inflate(inflater, container, false)
+        _binding = FragmentChatBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Receive data from the MessagesFragment
+        // 1. Receive data from arguments
         arguments?.let {
             conversationId = it.getString("conversationId", "")
-            otherName = it.getString("otherName", "Chat")
+            chatName = it.getString("otherName", "Chat")
         }
 
-        binding.tvTitleName.text = otherName
+        // 2. Basic UI Setup
+        binding.tvTitleName.text = chatName
         binding.btnBack.setOnClickListener { findNavController().popBackStack() }
 
-        // Setup RecyclerView
-        adapter = MessageAdapter()
+        // 3. Setup RecyclerView (Default to isGroup=false)
+        adapter = ChatAdapter(isGroup = false)
         binding.rvMessages.layoutManager = LinearLayoutManager(context).apply {
-            stackFromEnd = true // Always scroll to the bottom.
+            stackFromEnd = true // New messages appear at the bottom
         }
         binding.rvMessages.adapter = adapter
 
-        // Send message
+        // 4. Send a message
         binding.btnSend.setOnClickListener {
             val content = binding.etMessage.text.toString().trim()
             if (content.isNotEmpty()) {
@@ -63,20 +64,39 @@ class ChatFragment : Fragment() {
             }
         }
 
-        // Listen for new messages
+        // 5. Listen for messages in Realtime
         if (conversationId.isNotEmpty()) {
             viewModel.getMessages(conversationId).observe(viewLifecycleOwner) { messages ->
-                adapter.submitList(messages) {
-                    // When there is a new message, it will automatically scroll to the bottom.
-                    if (messages.isNotEmpty()) {
-                        binding.rvMessages.smoothScrollToPosition(messages.size - 1)
+
+                // Handle inserting Date Headers
+                val chatItems = mutableListOf<ChatItem>()
+                var lastTimestamp: Long = 0
+
+                messages.forEach { msg ->
+                    // If the day is different -> Add a Header
+                    if (!TimeUtils.isSameDay(msg.timestamp, lastTimestamp)) {
+                        chatItems.add(ChatItem.DateHeader(msg.timestamp))
+                        lastTimestamp = msg.timestamp
+                    }
+                    chatItems.add(ChatItem.MessageItem(msg))
+                }
+
+                // Save this list to be used if the adapter needs to be switched
+                currentChatItems = chatItems
+
+                // Update Adapter
+                adapter.submitList(chatItems) {
+                    if (chatItems.isNotEmpty()) {
+                        binding.rvMessages.smoothScrollToPosition(chatItems.size - 1)
                     }
                 }
             }
-        }
 
-        checkConversationType()
+            // 6. Check if this is a Group or User chat to reconfigure Adapter & Status
+            checkConversationType()
+        }
     }
+
     private fun checkConversationType() {
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
@@ -84,51 +104,52 @@ class ChatFragment : Fragment() {
             .document(conversationId)
             .get()
             .addOnSuccessListener { doc ->
-                if (doc.exists()) {
-                    val type = doc.getString("type") ?: "single"
+                if (!isAdded) return@addOnSuccessListener // Avoid crash if the screen is exited early
 
-                    if (type == "group") {
-                        // GROUP
-                        isGroup = true
+                val type = doc.getString("type") ?: "single"
 
-                        // 1. Hide online status.
-                        binding.tvStatus.visibility = View.GONE
+                if (type == "group") {
 
-                        // 2. Update the group name
-                        val groupName = doc.getString("groupName") ?: chatName
-                        binding.tvTitleName.text = groupName
+                    binding.tvStatus.visibility = View.GONE
 
-                    } else {
-                        // Chat with a friend
-                        isGroup = false
+                    val groupName = doc.getString("groupName") ?: chatName
+                    binding.tvTitleName.text = groupName
 
-                        // 1. Find ID of friend
-                        val participants = doc.get("participantIds") as? List<String>
-                        val otherId = participants?.find { it != currentUid }
+                    // Update the class's adapter instance
+                    adapter = ChatAdapter(isGroup = true)
+                    binding.rvMessages.adapter = adapter
 
-                        // 2. Listen to status
-                        if (otherId != null) {
-                            listenToUserStatus(otherId)
-                        }
+                    // Reload the already fetched data into the new adapter
+                    if (currentChatItems.isNotEmpty()) {
+                        adapter.submitList(currentChatItems)
+                    }
+
+                } else {
+
+                    val participants = doc.get("participantIds") as? List<String>
+                    val otherId = participants?.find { it != currentUid }
+                    if (otherId != null) {
+                        listenToUserStatus(otherId)
                     }
                 }
             }
     }
 
-    // Chat with friend
     private fun listenToUserStatus(uid: String) {
         FirebaseFirestore.getInstance().collection("users")
             .document(uid)
             .addSnapshotListener { value, error ->
-                if (error != null || value == null) return@addSnapshotListener
-
-                // If the Fragment has been destroyed (user exited), do not update the UI again to avoid crashing.
-                if (!isAdded) return@addSnapshotListener
+                if (error != null || value == null || _binding == null) return@addSnapshotListener
 
                 val user = value.toObject(User::class.java) ?: return@addSnapshotListener
 
                 binding.tvStatus.visibility = View.VISIBLE
-                if (user.status == "online") {
+
+                val isStatusOnline = user.status == "online"
+                val currentTime = System.currentTimeMillis()
+                val isRecent = (currentTime - user.lastSeen) < 1 * 60 * 1000 // 1 minutes
+
+                if (isStatusOnline && isRecent) {
                     binding.tvStatus.text = "Active now"
                     binding.tvStatus.setTextColor(Color.parseColor("#4CAF50"))
                 } else {
@@ -136,5 +157,11 @@ class ChatFragment : Fragment() {
                     binding.tvStatus.setTextColor(Color.GRAY)
                 }
             }
+    }
+
+    // Avoid memory leaks
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
