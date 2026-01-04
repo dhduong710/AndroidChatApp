@@ -18,6 +18,10 @@ import com.example.hustchat.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+import android.widget.PopupMenu
+import android.widget.Toast
+
+
 class ChatFragment : Fragment() {
     private var _binding: FragmentChatBinding? = null
     private val binding get() = _binding!!
@@ -124,6 +128,11 @@ class ChatFragment : Fragment() {
                         adapter.submitList(currentChatItems)
                     }
 
+                    binding.btnSettings.visibility = View.VISIBLE
+                    binding.btnSettings.setOnClickListener {
+                        showGroupSettingsDialog()
+                    }
+
                 } else {
 
                     val participants = doc.get("participantIds") as? List<String>
@@ -131,6 +140,7 @@ class ChatFragment : Fragment() {
                     if (otherId != null) {
                         listenToUserStatus(otherId)
                     }
+                    binding.btnSettings.visibility = View.GONE
                 }
             }
     }
@@ -158,6 +168,51 @@ class ChatFragment : Fragment() {
                 }
             }
     }
+
+    // Function to show the settings dialog
+    private fun showGroupSettingsDialog() {
+        val popup = PopupMenu(requireContext(), binding.btnSettings)
+        popup.menu.add(0, 1, 0, "Change group name")
+        popup.menu.add(0, 2, 1, "Change group photo") // Placeholder
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    showRenameDialog()
+                    true
+                }
+                2 -> {
+                    Toast.makeText(context, "Firebase Storage is needed to upload photos", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun showRenameDialog() {
+        val input = android.widget.EditText(requireContext())
+        input.hint = "Enter new group name"
+
+        // Display the current name
+        input.setText(binding.tvTitleName.text)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Change group name")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = input.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    viewModel.updateGroupProfile(conversationId, newName)
+                    // Update the UI immediately
+                    binding.tvTitleName.text = newName
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 
     // Avoid memory leaks
     override fun onDestroyView() {

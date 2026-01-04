@@ -36,19 +36,25 @@
         android:id="@+id/messagesFragment"
         android:name="com.example.hustchat.ui.MessagesFragment"
         android:label="Messages"
-        tools:layout="@layout/fragment_messages" />
+        tools:layout="@layout/fragment_messages" >
         <action
             android:id="@+id/action_messagesFragment_to_addFriend"
             app:destination="@id/addFriendFragment" />
         <action
             android:id="@+id/action_messagesFragment_to_createGroup"
             app:destination="@id/createGroupFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/meFragment"
         android:name="com.example.hustchat.ui.MeFragment"
         android:label="Me"
-        tools:layout="@layout/fragment_me" />
+        tools:layout="@layout/fragment_me" >
+
+        <action
+            android:id="@+id/action_meFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/addFriendFragment"
@@ -64,6 +70,12 @@
         android:name="com.example.hustchat.ui.ChatFragment"
         android:label="Chat"
         tools:layout="@layout/fragment_chat"/>
+
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.hustchat.ui.EditProfileFragment"
+        android:label="Edit Profile"
+        tools:layout="@layout/fragment_edit_profile" />
 
     <action
         android:id="@+id/action_messagesFragment_to_chatFragment"

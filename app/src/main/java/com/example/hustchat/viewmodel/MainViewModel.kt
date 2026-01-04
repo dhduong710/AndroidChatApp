@@ -94,4 +94,26 @@ class MainViewModel : ViewModel() {
             repository.sendMessage(conversationId, content)
         }
     }
+
+    fun updateUserProfile(newName: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateUserProfile(newName)
+                _toastMessage.value = "Profile updated successfully!"
+            } catch (e: Exception) {
+                _toastMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+
+    fun updateGroupProfile(groupId: String, newName: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateGroupProfile(groupId, newName)
+                _toastMessage.value = "Group name changed successfully!"
+            } catch (e: Exception) {
+                _toastMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
 }
