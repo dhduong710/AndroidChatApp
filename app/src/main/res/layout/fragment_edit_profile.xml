@@ -1,40 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center_horizontal"
-    android:background="@color/white">
+    tools:context=".ui.EditProfileFragment">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
         android:text="Edit profile"
+        android:textColor="@color/hust_red"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="32dp"/>
+        android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/ivAvatarPreview"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="16dp"
         android:src="@drawable/ic_person"
-        android:background="@color/gray_light"
-        android:padding="20dp"
-        android:layout_marginBottom="16dp"/>
+        app:civ_border_color="#E0E0E0"
+        app:civ_border_width="2dp" />
 
     <Button
         android:id="@+id/btnChangeAvatar"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:text="Change profile picture"
-        android:backgroundTint="#757575"
-        android:textSize="12sp"
-        android:layout_marginBottom="32dp"/>
+        android:textColor="@android:color/black"
+        android:textSize="12sp" />
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Username">
@@ -50,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:text="Save changes"
-        android:backgroundTint="@color/hust_red"/>
+        android:backgroundTint="@color/hust_red"
+        android:text="Save changes" />
 
 </LinearLayout>

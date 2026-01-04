@@ -31,22 +31,27 @@ class ConversationAdapter(
 
         fun bind(conversation: Conversation) {
 
-            // 1. Handle Name (Group vs. User)
+            val imageUrl: String
+            val displayName: String
+
             if (conversation.type == "group") {
-                binding.tvName.text = conversation.groupName.ifEmpty { "Unnamed Group" }
-                binding.tvName.setTypeface(null, Typeface.BOLD)
-                binding.ivAvatar.setImageResource(R.drawable.ic_group)
+                displayName = conversation.groupName.ifEmpty { "Group" }
+                // If groupAvatarUrl is null, use the getAvatarUrl function to create an image from the group name
+                imageUrl = com.example.hustchat.utils.ImageUtils.getAvatarUrl(displayName, conversation.groupAvatarUrl)
             } else {
                 val otherUser = conversation.otherUser
-                if (otherUser != null) {
-                    binding.tvName.text = otherUser.username
-                    binding.tvName.setTypeface(null, Typeface.BOLD)
-                } else {
-                    binding.tvName.text = "Loading..."
-                    binding.tvName.setTypeface(null, Typeface.NORMAL)
-                }
-                binding.ivAvatar.setImageResource(R.drawable.ic_person)
+                displayName = otherUser?.username ?: "User"
+                imageUrl = com.example.hustchat.utils.ImageUtils.getAvatarUrl(displayName, otherUser?.avatarUrl)
             }
+
+            binding.tvName.text = displayName
+
+            // Use Glide to load the image (It can load both real images and generated ones)
+            com.bumptech.glide.Glide.with(binding.root.context)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_person) // Placeholder image while loading
+                .circleCrop() // Crop the image into a circle for a nice look
+                .into(binding.ivAvatar)
 
             // 2. Handle Last Message
             if (conversation.lastMessage.isEmpty()) {

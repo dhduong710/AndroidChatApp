@@ -5,8 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.hustchat.databinding.ItemFriendRequestBinding
 import com.example.hustchat.model.FriendRequest
+import com.example.hustchat.utils.ImageUtils
 
 class RequestAdapter(
     private val onAcceptClick: (FriendRequest) -> Unit
@@ -28,6 +30,15 @@ class RequestAdapter(
 
         fun bind(request: FriendRequest) {
             binding.request = request
+
+            request.senderUser?.let { user ->
+                val finalAvatarUrl = ImageUtils.getAvatarUrl(user.username, user.avatarUrl)
+                Glide.with(binding.root.context)
+                    .load(finalAvatarUrl)
+                    .circleCrop()
+                    .into(binding.ivAvatar)
+            }
+
             binding.executePendingBindings()
 
             binding.btnAccept.setOnClickListener {

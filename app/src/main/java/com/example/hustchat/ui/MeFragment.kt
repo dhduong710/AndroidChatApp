@@ -7,18 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.example.hustchat.MainActivity
+import com.example.hustchat.R
+import com.example.hustchat.adapter.RequestAdapter
 import com.example.hustchat.databinding.FragmentMeBinding
+import com.example.hustchat.utils.ImageUtils
+import com.example.hustchat.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.hustchat.adapter.RequestAdapter
-import com.example.hustchat.viewmodel.MainViewModel
-
 import androidx.navigation.fragment.findNavController
-import com.example.hustchat.R
+import androidx.recyclerview.widget.LinearLayoutManager
 
 
 class MeFragment : Fragment() {
@@ -61,7 +61,9 @@ class MeFragment : Fragment() {
         // OBSERVE DATA
         viewModel.friendRequests.observe(viewLifecycleOwner) { requests ->
             requestAdapter.submitList(requests)
-            binding.tvReqHeader.visibility = View.VISIBLE
+            val visibility = View.VISIBLE
+            binding.tvReqHeader.visibility = visibility
+            binding.rvFriendRequests.visibility = visibility
         }
 
 
@@ -73,32 +75,44 @@ class MeFragment : Fragment() {
     private fun loadUserInfo() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
-            // Set email as a temporary value while loading username
             binding.tvUsername.text = currentUser.email ?: "Loading..."
 
-            // Query Firestore to get the current user's document
             FirebaseFirestore.getInstance().collection("users")
                 .document(currentUser.uid)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
-                    // Check if the fragment is still added before updating the UI
                     if (isAdded && documentSnapshot.exists()) {
-                        // Get the "username" field from the document
-                        val username = documentSnapshot.getString("username")
-                        // Update the TextView with the fetched username
-                        binding.tvUsername.text = username ?: currentUser.email // Fallback to email if username is null
+
+                        val username = documentSnapshot.getString("username") ?: "User"
+                        val avatarUrl = documentSnapshot.getString("avatarUrl") // Can be null
+
+                        // Set username
+                        binding.tvUsername.text = username
+
+                        // Generate final URL for Glide
+                        val finalUrl = ImageUtils.getAvatarUrl(username, avatarUrl)
+
+                        // Load image with Glide
+                        Glide.with(this)
+                            .load(finalUrl)
+                            .placeholder(R.drawable.ic_person) // Set a placeholder
+                            .circleCrop()
+                            .into(binding.ivAvatar)
                     }
                 }
                 .addOnFailureListener {
-                    // Handle failure, by still displaying the email
                     if (isAdded) {
                         binding.tvUsername.text = currentUser.email ?: "User"
+                        // Set a default avatar on failure
+                        binding.ivAvatar.setImageResource(R.drawable.ic_person)
                     }
                 }
         } else {
             binding.tvUsername.text = "User"
+            binding.ivAvatar.setImageResource(R.drawable.ic_person)
         }
     }
+
 
     override fun onResume() {
         super.onResume()

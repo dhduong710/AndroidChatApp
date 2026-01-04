@@ -5,8 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.hustchat.databinding.ItemUserSearchBinding
 import com.example.hustchat.model.User
+import com.example.hustchat.utils.ImageUtils
 
 class UserAdapter(private val onAddClick: (User) -> Unit) :
     ListAdapter<User, UserAdapter.UserViewHolder>(UserDiffCallback()) {
@@ -27,11 +29,18 @@ class UserAdapter(private val onAddClick: (User) -> Unit) :
 
         fun bind(user: User) {
             binding.user = user
+
+            val finalAvatarUrl = ImageUtils.getAvatarUrl(user.username, user.avatarUrl)
+            Glide.with(binding.root.context)
+                .load(finalAvatarUrl)
+                .circleCrop()
+                .into(binding.ivAvatar)
+
             binding.executePendingBindings()
 
             // Reset the button state (because RecyclerView reuses Views)
             binding.btnAdd.isEnabled = true
-            binding.btnAdd.text = "Add Friend" // TRANSLATED
+            binding.btnAdd.text = "Add Friend"
             binding.btnAdd.backgroundTintList = android.content.res.ColorStateList.valueOf(
                 android.graphics.Color.parseColor("#D71920")
             )

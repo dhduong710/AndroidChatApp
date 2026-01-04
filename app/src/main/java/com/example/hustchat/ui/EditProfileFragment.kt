@@ -8,7 +8,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.example.hustchat.R
 import com.example.hustchat.databinding.FragmentEditProfileBinding
+import com.example.hustchat.utils.ImageUtils
 import com.example.hustchat.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,27 +28,59 @@ class EditProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Load the current username into the EditText
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid != null) {
-            FirebaseFirestore.getInstance().collection("users").document(uid).get()
-                .addOnSuccessListener {
-                    binding.etUsername.setText(it.getString("username"))
-                }
-        }
+        // 1. Load current user profile (name and avatar)
+        loadUserProfile()
 
         binding.btnChangeAvatar.setOnClickListener {
-            Toast.makeText(context, "Feature in development (Requires Firebase Storage)", Toast.LENGTH_SHORT).show()
+            // Since Storage is not used, we just show a message
+            Toast.makeText(context, "Feature not available", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnSave.setOnClickListener {
             val newName = binding.etUsername.text.toString().trim()
             if (newName.isNotEmpty()) {
                 viewModel.updateUserProfile(newName)
+                // Show a success message and go back
+                Toast.makeText(context, "Profile updated!", Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             } else {
                 Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    /**
+     * This function loads user information from Firestore, including username and avatarUrl,
+     * then uses Glide to display the avatar.
+     */
+    private fun loadUserProfile() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance().collection("users").document(uid).get()
+            .addOnSuccessListener { document ->
+                // Check if the fragment is still added before updating the UI
+                if (isAdded && document != null) {
+                    val username = document.getString("username") ?: "User"
+                    val avatarUrl = document.getString("avatarUrl") // Can be null
+
+                    // 1. Fill the username into the EditText
+                    binding.etUsername.setText(username)
+
+                    // 2. Create the final avatar URL
+                    val finalUrl = ImageUtils.getAvatarUrl(username, avatarUrl)
+
+                    // 3. Use Glide to load and display the profile picture
+                    Glide.with(this)
+                        .load(finalUrl)
+                        .placeholder(R.drawable.ic_person) // Placeholder image while loading
+                        .circleCrop() // Crop the image into a circle
+                        .into(binding.ivAvatar) // Display in the ImageView
+                }
+            }
+            .addOnFailureListener {
+                if (isAdded) {
+                    Toast.makeText(context, "Failed to load profile data", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 }

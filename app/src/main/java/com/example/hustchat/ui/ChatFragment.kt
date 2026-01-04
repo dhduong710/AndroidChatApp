@@ -30,8 +30,8 @@ class ChatFragment : Fragment() {
 
     private var conversationId: String = ""
     private var chatName: String = ""
+    private var partnerAvatarUrl: String? = null
 
-    // Store the current list of chat items to reload when switching the Adapter (Group mode)
     private var currentChatItems: List<ChatItem> = emptyList()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -42,20 +42,25 @@ class ChatFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Receive data from arguments
+        // 1. Get data from arguments
         arguments?.let {
             conversationId = it.getString("conversationId", "")
             chatName = it.getString("otherName", "Chat")
+            partnerAvatarUrl = it.getString("avatarUrl")
         }
 
-        // 2. Basic UI Setup
+        // 2. Setup basic UI
         binding.tvTitleName.text = chatName
         binding.btnBack.setOnClickListener { findNavController().popBackStack() }
 
-        // 3. Setup RecyclerView (Default to isGroup=false)
-        adapter = ChatAdapter(isGroup = false)
+        // 3. Setup RecyclerView
+        adapter = ChatAdapter(
+            isGroup = false,
+            partnerName = chatName,
+            partnerAvatarUrl = partnerAvatarUrl
+        )
         binding.rvMessages.layoutManager = LinearLayoutManager(context).apply {
-            stackFromEnd = true // New messages appear at the bottom
+            stackFromEnd = true
         }
         binding.rvMessages.adapter = adapter
 
@@ -68,16 +73,13 @@ class ChatFragment : Fragment() {
             }
         }
 
-        // 5. Listen for messages in Realtime
+        // 5. Listen for messages
         if (conversationId.isNotEmpty()) {
             viewModel.getMessages(conversationId).observe(viewLifecycleOwner) { messages ->
-
-                // Handle inserting Date Headers
                 val chatItems = mutableListOf<ChatItem>()
                 var lastTimestamp: Long = 0
 
                 messages.forEach { msg ->
-                    // If the day is different -> Add a Header
                     if (!TimeUtils.isSameDay(msg.timestamp, lastTimestamp)) {
                         chatItems.add(ChatItem.DateHeader(msg.timestamp))
                         lastTimestamp = msg.timestamp
@@ -85,10 +87,8 @@ class ChatFragment : Fragment() {
                     chatItems.add(ChatItem.MessageItem(msg))
                 }
 
-                // Save this list to be used if the adapter needs to be switched
                 currentChatItems = chatItems
 
-                // Update Adapter
                 adapter.submitList(chatItems) {
                     if (chatItems.isNotEmpty()) {
                         binding.rvMessages.smoothScrollToPosition(chatItems.size - 1)
@@ -96,7 +96,7 @@ class ChatFragment : Fragment() {
                 }
             }
 
-            // 6. Check if this is a Group or User chat to reconfigure Adapter & Status
+            // 6. Check conversation type
             checkConversationType()
         }
     }
@@ -108,22 +108,24 @@ class ChatFragment : Fragment() {
             .document(conversationId)
             .get()
             .addOnSuccessListener { doc ->
-                if (!isAdded) return@addOnSuccessListener // Avoid crash if the screen is exited early
+                if (!isAdded) return@addOnSuccessListener
 
                 val type = doc.getString("type") ?: "single"
 
                 if (type == "group") {
-
                     binding.tvStatus.visibility = View.GONE
 
                     val groupName = doc.getString("groupName") ?: chatName
                     binding.tvTitleName.text = groupName
 
-                    // Update the class's adapter instance
-                    adapter = ChatAdapter(isGroup = true)
+                    // Adapter for group chat
+                    adapter = ChatAdapter(
+                        isGroup = true,
+                        partnerName = null, // Not needed for group chat
+                        partnerAvatarUrl = null
+                    )
                     binding.rvMessages.adapter = adapter
 
-                    // Reload the already fetched data into the new adapter
                     if (currentChatItems.isNotEmpty()) {
                         adapter.submitList(currentChatItems)
                     }
@@ -134,7 +136,6 @@ class ChatFragment : Fragment() {
                     }
 
                 } else {
-
                     val participants = doc.get("participantIds") as? List<String>
                     val otherId = participants?.find { it != currentUid }
                     if (otherId != null) {
@@ -157,7 +158,7 @@ class ChatFragment : Fragment() {
 
                 val isStatusOnline = user.status == "online"
                 val currentTime = System.currentTimeMillis()
-                val isRecent = (currentTime - user.lastSeen) < 1 * 60 * 1000 // 1 minutes
+                val isRecent = (currentTime - user.lastSeen) < 1 * 60 * 1000 // 1 minute
 
                 if (isStatusOnline && isRecent) {
                     binding.tvStatus.text = "Active now"
@@ -182,7 +183,7 @@ class ChatFragment : Fragment() {
                     true
                 }
                 2 -> {
-                    Toast.makeText(context, "Firebase Storage is needed to upload photos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Feature not available", Toast.LENGTH_SHORT).show()
                     true
                 }
                 else -> false
@@ -195,7 +196,6 @@ class ChatFragment : Fragment() {
         val input = android.widget.EditText(requireContext())
         input.hint = "Enter new group name"
 
-        // Display the current name
         input.setText(binding.tvTitleName.text)
 
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -205,7 +205,6 @@ class ChatFragment : Fragment() {
                 val newName = input.text.toString().trim()
                 if (newName.isNotEmpty()) {
                     viewModel.updateGroupProfile(conversationId, newName)
-                    // Update the UI immediately
                     binding.tvTitleName.text = newName
                 }
             }
@@ -214,7 +213,6 @@ class ChatFragment : Fragment() {
     }
 
 
-    // Avoid memory leaks
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
