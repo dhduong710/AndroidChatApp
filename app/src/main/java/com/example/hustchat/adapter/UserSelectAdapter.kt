@@ -3,8 +3,10 @@ package com.example.hustchat.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.hustchat.databinding.ItemUserCheckboxBinding
 import com.example.hustchat.model.User
+import com.example.hustchat.utils.ImageUtils
 
 class UserSelectAdapter(private val users: List<User>) :
     RecyclerView.Adapter<UserSelectAdapter.ViewHolder>() {
@@ -22,6 +24,12 @@ class UserSelectAdapter(private val users: List<User>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val user = users[position]
         holder.binding.user = user
+
+        val finalAvatarUrl = ImageUtils.getAvatarUrl(user.username, user.avatarUrl)
+        Glide.with(holder.binding.root.context)
+            .load(finalAvatarUrl)
+            .circleCrop()
+            .into(holder.binding.ivAvatar)
 
         // Avoid view reuse errors: Delete the old listener before setting the state.
         holder.binding.cbSelect.setOnCheckedChangeListener(null)

@@ -78,4 +78,12 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
+    // Firebase Storage (Photo archive)
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+    // Glide (Display image from URL)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <variable
@@ -11,18 +12,20 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:background="@color/white">
+        android:background="@color/white"
+        android:padding="8dp">
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/ivAvatar"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/ic_person"
-            android:background="@color/gray_light"
+            app:civ_border_color="#EAEAEA"
+            app:civ_border_width="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            tools:src="@drawable/ic_person" />
 
         <TextView
             android:id="@+id/tvName"
@@ -30,31 +33,32 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:text="@{request.senderUser.username}"
-            android:textStyle="bold"
             android:textColor="@color/black"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btnAccept"
             app:layout_constraintStart_toEndOf="@id/ivAvatar"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnAccept"/>
+            tools:text="Username" />
 
         <TextView
-            android:text="Sent a friend request"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Sent a friend request"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@id/tvName"
-            app:layout_constraintTop_toBottomOf="@id/tvName"/>
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAccept"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
+            android:backgroundTint="@color/hust_red"
             android:text="Accept"
             android:textSize="12sp"
-            android:backgroundTint="@color/hust_red"
             app:cornerRadius="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
