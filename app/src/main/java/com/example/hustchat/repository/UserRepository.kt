@@ -165,8 +165,8 @@ class UserRepository {
 
                 if (snapshot != null) {
                     val conversations = mutableListOf<Conversation>()
-                    // Since Firestore doesn't support joins, have to manually load the other user's info.
-                    // However, to be fast, will return the list of conversations first,
+                    // Since Firestore doesn't support joins, we have to manually load the other user's info.
+                    // However, to be fast, we will return the list of conversations first,
                     // and the ViewModel will be responsible for loading the user info later.
                     for (doc in snapshot.documents) {
                         val chat = doc.toObject(Conversation::class.java)
@@ -194,7 +194,7 @@ class UserRepository {
         // 1. Save the message to the sub-collection
         batch.set(msgRef, message)
 
-        // 2. Update the last message in Conversation (to display externally)
+        // 2. Update the last message in Conversation (for display in the conversation list)
         val convRef = db.collection("conversations").document(conversationId)
         batch.update(convRef, mapOf(
             "lastMessage" to content,
@@ -205,7 +205,7 @@ class UserRepository {
     }
 
     // Listen to messages in real-time
-    fun getMessagesLive(conversationId: String): kotlinx.coroutines.flow.Flow<List<Message>> = kotlinx.coroutines.flow.callbackFlow {
+    fun getMessagesLive(conversationId: String): kotlinx.coroutines.flow.Flow<List<Message>> = callbackFlow {
         val listener = db.collection("conversations").document(conversationId)
             .collection("messages")
             .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.ASCENDING)
@@ -220,7 +220,7 @@ class UserRepository {
         awaitClose { listener.remove() }
     }
 
-    // Get the list of friends (from the friends collection)
+    // Get the list of friends (from the friends sub-collection)
     suspend fun getFriends(): List<User> {
         val currentUid = auth.currentUser?.uid ?: return emptyList()
         val snapshot = db.collection("users").document(currentUid)
@@ -233,7 +233,7 @@ class UserRepository {
         val currentUid = auth.currentUser?.uid ?: return
         val timestamp = System.currentTimeMillis()
 
-        // Generate random IDs for the Group
+        // Generate a random ID for the Group
         val groupRef = db.collection("conversations").document()
 
         // Participant list includes: Me + the friends I've selected
@@ -262,5 +262,24 @@ class UserRepository {
         batch.set(msgRef, sysMsg)
 
         batch.commit().await()
+    }
+
+    // Update user profile (Username)
+    suspend fun updateUserProfile(newUsername: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val updates = hashMapOf<String, Any>(
+            "username" to newUsername
+        )
+        // If there's an avatarUrl, add it to the updates map here
+        db.collection("users").document(uid).update(updates).await()
+    }
+
+    // Update group profile (Group Name)
+    suspend fun updateGroupProfile(groupId: String, newName: String) {
+        val updates = hashMapOf<String, Any>(
+            "groupName" to newName
+        )
+        // If there's a groupAvatarUrl, add it here
+        db.collection("conversations").document(groupId).update(updates).await()
     }
 }

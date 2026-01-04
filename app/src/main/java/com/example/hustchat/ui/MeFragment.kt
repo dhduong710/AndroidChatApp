@@ -10,11 +10,16 @@ import androidx.fragment.app.Fragment
 import com.example.hustchat.MainActivity
 import com.example.hustchat.databinding.FragmentMeBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.hustchat.adapter.RequestAdapter
 import com.example.hustchat.viewmodel.MainViewModel
+
+import androidx.navigation.fragment.findNavController
+import com.example.hustchat.R
+
 
 class MeFragment : Fragment() {
     private lateinit var binding: FragmentMeBinding
@@ -38,12 +43,10 @@ class MeFragment : Fragment() {
             adapter = requestAdapter
         }
 
-        // Setup User Info (Assuming a simple case of getting from currentUser)
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        // Can fetch more detailed username information from Firestore if want to display it accurately
-        binding.tvUsername.text = currentUser?.email ?: "User"
+        // LOAD USER INFORMATION
+        loadUserInfo()
 
-        // Old Logout logic
+        // BUTTON CLICKS
         binding.btnLogout.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(requireContext(), MainActivity::class.java)
@@ -51,23 +54,56 @@ class MeFragment : Fragment() {
             startActivity(intent)
         }
 
-        // Observe data
+        binding.btnEditProfile.setOnClickListener {
+            findNavController().navigate(R.id.action_meFragment_to_editProfileFragment)
+        }
+
+        // OBSERVE DATA
         viewModel.friendRequests.observe(viewLifecycleOwner) { requests ->
             requestAdapter.submitList(requests)
-            // Hide/show the header if the list is empty
-            // binding.tvReqHeader.visibility = if (requests.isEmpty()) View.GONE else View.VISIBLE
+            binding.tvReqHeader.visibility = View.VISIBLE
         }
 
 
         viewModel.toastMessage.observe(viewLifecycleOwner) {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
+    }
 
+    private fun loadUserInfo() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            // Set email as a temporary value while loading username
+            binding.tvUsername.text = currentUser.email ?: "Loading..."
+
+            // Query Firestore to get the current user's document
+            FirebaseFirestore.getInstance().collection("users")
+                .document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    // Check if the fragment is still added before updating the UI
+                    if (isAdded && documentSnapshot.exists()) {
+                        // Get the "username" field from the document
+                        val username = documentSnapshot.getString("username")
+                        // Update the TextView with the fetched username
+                        binding.tvUsername.text = username ?: currentUser.email // Fallback to email if username is null
+                    }
+                }
+                .addOnFailureListener {
+                    // Handle failure, by still displaying the email
+                    if (isAdded) {
+                        binding.tvUsername.text = currentUser.email ?: "User"
+                    }
+                }
+        } else {
+            binding.tvUsername.text = "User"
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // Reload every time this screen is entered
+        // Reload data every time this screen is entered
         viewModel.loadFriendRequests()
+        loadUserInfo() // Also reload user info in case it was just edited
     }
 }
